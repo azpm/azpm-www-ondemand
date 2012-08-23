@@ -1,0 +1,149 @@
+{% extends "intensifier/base.html" %}
+
+{% load newsengine comments markup socialize %}
+
+{% block extra-meta %}
+<meta name="publish_date" content="{{publish.start|date:"c"}}" />
+{% endblock %}
+{% block open-graph %}
+<meta property="og:title" content="{{ publish.story.article.headline_en }}" />
+<meta property="og:url" content="{{ request.build_absolute_uri }}" />
+<meta property="og:description" content="{{ publish.story.article.sub_headline_en }}" />
+<meta property="og:image" content="{{ publish.thumbnail.file.url }}" />
+{% endblock %}
+
+{% block content %}
+{% with publish.story as story %}{% with story.article as article %}
+
+<!-- begin slice -->
+<div class="slice clearfix content-bg">
+    
+    <!-- begin right column -->
+    <div class="grid_1 push_2">  
+    
+        <!-- Share Box -->
+        <div id="share" class="namedbox">
+            <h1 class="boxtop bt-blue">Share This</h1>
+            {% social_links_obj publish article.headline symbols %}
+        </div>
+        
+        <!-- Connect Box -->
+        <div id="connect" class="namedbox">
+            <h1 class="boxtop bt-grey">Connect with {{ story.author.get_full_name }}</h1>
+            <div class="contact-wrapper">
+                <div style="background-image:url('{{ story.author.person.small_portrait.file.url }}'); width:80px; height:80px; background-position:center;" class="left">&nbsp;</div>
+                
+                <!--<img src="" height="80" width="80" alt="{{ story.author.get_full_name }}" class="left"/>-->
+                <p class="social-contact right">
+                Contact the author, <a href="#">{{ story.author.get_full_name }}</a>
+                </p> 
+            </div>
+            <div style="clear:both;"></div>
+        </div>
+        
+        <!-- video dl box -->
+        {% if story.article.video_inlines.all.0 %}
+        <div id="sharevideo" class="namedbox">
+            <h1 class="boxtop bt-blue">Share + Save Video</h1>
+            {% for video in story.article.video_inlines.all %}
+                {% if video.reproduction_allowed %}
+                    <h4>Download "{{ video }}"</h4>
+                    <a href="{{ video.file.url }}">as {{ video.type }}</a><br/><br/>
+                    <h4>Embed "{{ video }}"</h4>
+                    <textarea cols="200" rows="20" style="font-size:smaller; width:284px; height:100px;"><object width="480" height="282" data="http://media.azpm.org/ondemand/swf/fp3/flowplayer.commercial-3.1.5.swf" type="application/x-shockwave-flash"><param name="movie" value="http://media.azpm.org/ondemand/swf/fp3/flowplayer.commercial-3.1.5.swf" /><param name="allowfullscreen" value="true" /><param name="allowscriptaccess" value="always" /><param name="flashvars" value='config={"width":617,"height":372,"key":"#$c3492e48e9da60b0777","clip":{"url":"mp4:{{ video.file }}","provider":"rtmpvod","scaling":"fit","autoPlay":false},"canvas":{"backgroundImage":"http://media.azpm.org/master/swf/fp3/clicktoplay480.gif"},"plugins":{"rtmpvod":{"url":"http://media.azpm.org/ondemand/swf/fp3/flowplayer.rtmp-3.1.3.swf","netConnectionUrl":"rtmp://fms.azpm.org/vod/"},"controls":{"url":"http://media.azpm.org/ondemand/swf/fp3/flowplayer.controls-3.1.5.swf","bufferGradient":"none","timeBgColor":"#666666","buttonOverColor":"#728B94","borderRadius":"0px","sliderColor":"#000000","progressGradient":"medium","buttonColor":"#6E95BE","sliderGradient":"none","durationColor":"#ffffff","tooltipColor":"#6E95BE","progressColor":"#112233","bufferColor":"#666666","backgroundColor":"#AAAAAA","volumeSliderGradient":"none","backgroundGradient":[0.6,0.3,0,0,0],"tooltipTextColor":"#ffffff","timeColor":"#FFFFFF","volumeSliderColor":"#000000","timeBgHeightRatio":0.9,"height":24,"opacity":1}},"logo":{"url":"http://media.azpm.org/master/img/fp_bugs/azpm.org.png","top":"5","right":"5","opacity":0.5,"fullscreenOnly":false,"displayTime":0,"fadeSpeed":0,"linkUrl":"http://www.azpm.org"},"playlist":[{"url":"mp4:{{ video.file }}","provider":"rtmpvod","autoPlay":false}]}' /></object></textarea>
+                {% endif %}
+            {% endfor %}
+        </div>
+        {% endif %}
+        <!-- end video dl box -->
+
+        
+    </div> 
+    <!-- end right column -->
+    
+    <!-- begin left column -->
+    <div class="grid_2 pull_1">
+        
+        <!-- begin subslice 1 -->
+        <div class="grid_2 alpha">
+            
+            <!-- Article Box -->        
+            <div id="top-stories" class="namedbox">
+                <h1 class="boxtop bt-blue">{{ article.headline }}</h1>
+                
+                <h4 class="article-author">Story by {{ story.author.get_full_name }}</h4>
+                <h5 class="article-date">{{ publish.start|date:"F j, Y"}}</h5> 
+                
+                <div class="article-body clearfix">
+                    {% render_article article %}
+                </div>
+            </div>
+            <!-- end article -->
+            
+            <!-- Comment Box -->        
+            <div id="top-stories" class="namedbox">
+                <h1 class="boxtop bt-blue">Comments</h1>
+                
+                <!-- Comment Form -->
+                {% if object.comments_enabled %}
+                    {% with request.path as next %}{% render_comment_form for story %}{% endwith %}
+                {% else %}
+                    <strong>Comments are closed</strong>
+                    <p>To prevent spam, comments are no longer allowed after thirty days.</p>
+                {% endif %}
+                
+                <!-- Comment Disclaimmer -->
+                <div class="comment-disclaimer">
+                    <p>
+                    Comments are encouraged, but you may not use profanity or post anything unrelated, threatening, libelous, defamatory, obscene, pornographic, or other materials which would violate the law.
+                    </p>
+                    <p>
+                    By submitting your comments, you hereby give AZPM the right to post your comments and potentially use them in any other form of media operated by this institution. Comments are moderated and may be removed, even after posting, if deemed inappropriate, or in violation of guidelines.
+                    </p>
+                </div>
+                
+                <!-- Comment Display -->
+                {% get_xsite_comment_count for newsengine.story story.pk as comment_count %}
+                {% if comment_count > 0 %}
+                    <div class="comments-meta">
+                        <h3>{{ comment_count }} Comment{{ comment_count|pluralize }}</h3>
+                    </div>
+                    {% get_xsite_comment_list for story as comments %}
+                    {% for comment in comments %}
+                        <div class="single-comment">
+                            {% if comment.user.is_staff %}
+                                {% if comment.user == object.story.author %}
+                                    <span class="comment-author-status">? author</span>
+                                {% else %}
+                                    <span class="comment-author-status">? azpm staff</span>
+                                {% endif %}
+                                {{ comment.user.get_full_name }} wrote on {{ comment.submit_date|date:"M j, Y P" }}:
+                            {% else %}
+                                {{ comment.user_name }} wrote on {{ comment.submit_date|date:"M j, Y P" }}:
+                            {% endif %}
+                            {% if comment.site != CMS_REALM.site %}
+                                <span style="font-size: 85%">from {{ comment.site }}</span>
+                            {% endif %}
+                            <hr/>
+                            {{ comment.comment|markdown }}
+                        </div>
+                    {% endfor %}
+                {% else }
+                    <div>
+                        No Comments.
+                    </div>
+                {% endif %}
+            </div>            
+            <!-- end comments box-->
+            
+        </div>
+        <!-- end subslice 1 -->
+        
+    </div> 
+    <!-- end left column -->
+
+</div>
+<!-- end slice -->
+
+{% endwith %}{% endwith %}	
+{% endblock %}

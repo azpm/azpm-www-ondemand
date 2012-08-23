@@ -1,0 +1,21 @@
+section#videoshorts table {
+    width: 597px;
+    margin: 10px auto;
+}
+
+section#videoshorts table td {
+    vertical-align: top;
+    width: 199px;
+    padding: 0 0 10px;
+}
+
+section#videoshorts table td div.story-title h3 {
+    max-width: 150px;
+}
+
+section#videoshorts table td div.vs-story div.comments {
+    font-size: 8pt;
+    max-width: 150px;
+    margin-top: 10px;
+    text-align: right;
+}

@@ -1,0 +1,96 @@
+{% extends "intensifier/base.html" %}
+
+{% load listutil newsengine %}
+
+{% block extra-meta %}
+<meta name="robots" content="noindex"/>
+    <meta name="description" content="Video Shorts"/>
+{% endblock %}
+
+{% block open-graph %}
+    <meta property="og:title" content="Arizona Public Media - {{ cms_page.title }}" />
+    <meta property="og:url" content="{{ request.build_absolute_uri }}" />
+    <meta property="og:description" content="{{ picker.name }}" />
+    <meta property="og:image" content="{{ cms_page.theme.banner.url }}" />
+{% endblock %}
+
+{% block content %}
+<!-- creating a slice -->
+<div class="slice clearfix content-bg">
+    <div class="grid_2">
+        <div class="namedbox first-box">
+            <h1 class="boxtop bt-blue">Video Shorts</h1>
+            <section id="videoshorts">
+                <table>{% for column in object_list|columns:6 %}
+                    <tr>{% for publish in column %}
+                        <td>
+                            {% with story=publish.story article=publish.story.article %}
+                            {% get_xsite_comment_count for story as comment_count %}
+                            <div class="vs-story">
+                                <div class="story-title">{% if publish.thumbnail %}
+                                    <img src="{{ publish.thumbnail.file.url }}" height="85" width="150" alt="{{ publish.thumbnail.caption }}" />{% endif %}
+                                    <h3><a href="{% url videoshort-by-slug publish.start.year,publish.start.month,publish.start.day,publish.slug %}">{{ article.headline }}</a></h3>
+                                </div>
+                                
+                                <div class="comments">
+                                    Comments ({{ comment_count }})
+                                </div>
+                            </div>{% endwith %}
+                        </td>{% endfor %}
+                    </tr>{% endfor %}
+                </table>
+            </section>
+            <div class="list-pagination">
+                <ul>
+                    <li class="prev {% if not page_obj.has_previous %}disabled{% endif %}">{% if page_obj.has_previous %}{% if get_args %}
+                        <a href="?{{ get_args }}&page={{page_obj.previous_page_number}}">{% else %}
+                        <a href="?page={{page_obj.previous_page_number}}">{% endif %}{% else %}
+                        <a>{% endif %}&larr; previous</a>
+                    </li>
+                    {% if page_obj.number > 5 %}
+                        <li>{% if get_args %}
+                            <a href="?{{ get_args }}&page=1">{% else %}<a href="?page=1">{% endif %}first</a></li>{% endif %}
+                    {% build_pagelist paginator.page_range page_obj.number get_args %}
+                    {% if page_obj.number != paginator.num_pages %}
+                        <li>{% if get_args %}
+                            <a href="?{{ get_args }}&page=last">{% else %}<a href="?page=last">{% endif %}last</a>
+                        </li>{% endif %}
+                    <li class="next {% if not page_obj.has_next %}disabled{% endif %}">{% if page_obj.has_next %}{% if get_args %}
+                        <a href="?{{ get_args }}&page={{page_obj.next_page_number}}">{% else %}
+                        <a href="?page={{page_obj.next_page_number}}">{% endif %}{% else %}
+                        <a>{% endif %}&rarr; next</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="grid_1">
+        <div class="namedbox first-box" id="collection-info">
+            <h1 class="boxtop bt-blue">
+                Selected Archive Filters
+            </h1>
+            <h2>{{ page_obj.start_index }} &ndash; {{ page_obj.end_index }} of {{ paginator.count }} videos</h2>
+            <section id="base-categories">
+            </section>{% if limits %}
+            <section id="selected-categories">
+                <div class="tag-cloud">
+                    <span class="label notice">click any filter to remove it</span>
+                    <p>{% for cat in limits %}
+                        [<a href="{% dechain_archival_categories cat limits %}" class="cloudy weight-3">{{cat.title}}</a>]{% endfor %}
+                    </p>
+                </div>
+            </section>{% endif %}
+        </div>
+        <div class="namedbox" id="available-categories">
+            <h1 class="boxtop bt-blue">
+                Available Archive Filters
+            </h1>{% category_cloud categories as cats with steps=5 %}
+            <span class="label notice">click any filter to add it</span>
+            <div class="tag-cloud"><p>{% for cat in cats %}
+                [<a href="{% chain_archival_categories cat limits %}" class="cloudy weight-{{ cat.font_size }}">{{cat.title}}</a>]{% endfor %}
+            </p></div>
+        </div>
+    </div>
+</div>
+<!-- end slice -->
+{% endblock %}
